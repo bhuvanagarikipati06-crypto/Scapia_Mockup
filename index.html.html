@@ -1,0 +1,812 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>skwad</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one phone column; sticky plan bar with status + countdown; chunky tap targets pinned in thumb reach. */
+:root{
+  --indigo:#4F46E5; --indigo-soft:#EEF0FE; --indigo-deep:#3730A3;
+  --orange:#F97316; --orange-soft:#FFF1E6; --orange-deep:#C2410C;
+  --ink:#0F172A; --slate:#64748B; --canvas:#F8FAFC;
+  --emerald:#10B981; --emerald-soft:#E6F9F1; --emerald-deep:#047857;
+  --surface:#FFFFFF; --line:#E2E8F0; --line-soft:#EFF3F8;
+  --display:"Outfit","Trebuchet MS",sans-serif;
+  --body:"Plus Jakarta Sans",system-ui,-apple-system,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--canvas);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--canvas);z-index:30}
+.wrap{max-width:460px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 118px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.02em}
+p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer;font-family:var(--body)}
+:focus-visible{outline:3px solid var(--indigo);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+
+.demo{background:var(--orange-soft);color:var(--orange-deep);font-size:12.5px;padding:9px 13px;border-radius:12px;display:flex;gap:9px;align-items:flex-start;margin-top:12px;font-weight:500}
+.demo b{font-weight:700}
+
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border:1px solid var(--line);border-radius:18px;margin-top:10px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.bar-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:800;font-size:19px;letter-spacing:-.045em;color:var(--indigo);margin-right:auto}
+.ladder{display:flex;gap:4px;font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;font-family:var(--display)}
+.rung{padding:4px 8px;border-radius:999px;background:var(--canvas);color:var(--slate);border:1px solid var(--line)}
+.rung.on{background:var(--indigo);color:#fff;border-color:var(--indigo)}
+.rung.ok{background:var(--emerald);color:#fff;border-color:var(--emerald)}
+.rung.off{opacity:.4}
+.deadline{background:var(--orange-soft);border-radius:12px;padding:9px 11px;font-size:12.5px;color:var(--orange-deep);display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;font-weight:500}
+.deadline .cd{font-family:var(--display);font-weight:700;font-size:14px;letter-spacing:-.01em}
+.steps{display:flex;gap:5px}
+.steps i{height:4px;flex:1;background:var(--line);border-radius:3px}
+.steps i.done{background:var(--indigo)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px;margin-top:12px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.eyebrow{font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;font-weight:700;color:var(--indigo);font-family:var(--display)}
+h2.t{font-size:23px;margin-top:5px;font-weight:700}
+.sub{color:var(--slate);font-size:13.5px;margin-top:7px}
+
+.chat{background:var(--canvas);border-radius:14px;padding:12px;margin-top:14px;display:flex;flex-direction:column;gap:8px}
+.chat .who{font-size:10px;color:var(--slate);letter-spacing:.09em;text-transform:uppercase;font-weight:700;font-family:var(--display)}
+.msg{background:var(--surface);border-radius:13px;padding:9px 12px;font-size:13.5px;max-width:88%;box-shadow:0 1px 1px rgba(15,23,42,.05)}
+.msg.me{align-self:flex-end;background:var(--indigo-soft);color:var(--indigo-deep);font-weight:500}
+.msg.sml{font-size:12.5px;color:var(--slate);background:none;box-shadow:none;padding:2px 2px}
+.linkcard{background:var(--surface);border:2px solid var(--indigo);border-radius:14px;padding:11px 12px;align-self:flex-end;max-width:94%}
+.linkcard .u{font-size:11.5px;color:var(--indigo);word-break:break-all;font-weight:600}
+
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.tile{border:2px solid var(--line);background:var(--surface);border-radius:16px;padding:13px 12px;min-height:74px;text-align:left;display:flex;flex-direction:column;gap:3px}
+.tile .tn{font-family:var(--display);font-weight:700;font-size:14.5px;line-height:1.2}
+.tile .td{font-size:11.5px;color:var(--slate)}
+.tile[aria-pressed="true"]{border-color:var(--indigo);background:var(--indigo-soft)}
+.tile[aria-pressed="true"] .tn{color:var(--indigo-deep)}
+
+.cal{margin-top:11px;background:var(--canvas);border-radius:16px;padding:12px}
+.calhead{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.calhead .mo{font-family:var(--display);font-weight:700;font-size:15px;margin:0 auto}
+.calhead button{width:38px;height:38px;border-radius:11px;border:2px solid var(--line);background:var(--surface);font-weight:700;font-size:15px;line-height:1;display:grid;place-items:center}
+.calhead button:disabled{opacity:.35;cursor:not-allowed}
+.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.dow{text-align:center;font-size:10px;font-weight:700;color:var(--slate);text-transform:uppercase;letter-spacing:.04em;padding-bottom:3px;font-family:var(--display)}
+.cd{aspect-ratio:1;min-height:42px;border-radius:11px;border:2px solid transparent;background:var(--surface);font-size:14px;font-weight:600;display:grid;place-items:center;font-variant-numeric:tabular-nums}
+.cd.blank{background:none}
+.cd.other{opacity:.5}
+.cd.sel.other{opacity:1}
+.cd.we{color:var(--indigo);background:var(--indigo-soft)}
+.cd:disabled{opacity:.3;background:none;cursor:not-allowed}
+.cd.sel{background:var(--indigo);color:#fff;border-color:var(--indigo)}
+.calpick{font-size:12.5px;color:var(--slate);margin-top:10px;font-weight:500}
+.calpick b{color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}
+.chip{background:var(--surface);border:2px solid var(--line);border-radius:999px;padding:11px 16px;font-size:13.5px;min-height:46px;display:inline-flex;align-items:center;font-weight:600;font-family:var(--display)}
+.chip[aria-pressed="true"]{background:var(--indigo);border-color:var(--indigo);color:#fff}
+.chip.em[aria-pressed="true"]{background:var(--emerald);border-color:var(--emerald)}
+
+.btn{width:100%;min-height:54px;border-radius:15px;border:none;background:var(--indigo);color:#fff;font-weight:700;font-size:15.5px;padding:13px;margin-top:16px;font-family:var(--display);letter-spacing:-.01em;box-shadow:0 2px 0 var(--indigo-deep)}
+.btn:active{transform:translateY(1px);box-shadow:0 1px 0 var(--indigo-deep)}
+.btn.orange{background:var(--orange);box-shadow:0 2px 0 var(--orange-deep)}
+.btn.em{background:var(--emerald);box-shadow:0 2px 0 var(--emerald-deep)}
+.btn.quiet{background:var(--surface);color:var(--ink);border:2px solid var(--line);box-shadow:none}
+.btn:disabled{opacity:.42;box-shadow:none;cursor:not-allowed}
+.btn.sm{min-height:46px;font-size:14px;margin-top:9px}
+
+.field{margin-top:18px}
+.field>label{font-size:12px;font-weight:700;color:var(--slate);text-transform:uppercase;letter-spacing:.09em;font-family:var(--display);display:block}
+.bigval{font-family:var(--display);font-weight:800;font-size:30px;letter-spacing:-.03em;margin-top:6px;color:var(--indigo)}
+.decomp{font-size:12.5px;color:var(--slate);margin-top:2px}
+input[type=range]{width:100%;margin-top:10px;height:38px;accent-color:var(--indigo)}
+
+.priv{background:var(--indigo-soft);color:var(--indigo-deep);border-radius:14px;padding:12px 13px;font-size:12.5px;display:flex;gap:10px;align-items:flex-start;margin-top:16px;font-weight:500}
+.priv svg{flex:0 0 auto;margin-top:2px}
+.priv b{font-weight:700}
+
+.roster{margin-top:12px;display:flex;flex-direction:column;gap:7px}
+.rrow{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--canvas);border-radius:13px}
+.av{width:32px;height:32px;border-radius:999px;background:var(--indigo-soft);color:var(--indigo-deep);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:13px;flex:0 0 auto}
+.av.g{background:var(--emerald-soft);color:var(--emerald-deep)}
+.av.o{background:var(--orange-soft);color:var(--orange-deep)}
+.rname{font-weight:600;font-size:14px;margin-right:auto}
+.tag{font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;padding:4px 8px;border-radius:999px;background:var(--line-soft);color:var(--slate);white-space:nowrap;font-family:var(--display)}
+.tag.ok{background:var(--emerald-soft);color:var(--emerald-deep)}
+.tag.wait{background:var(--orange-soft);color:var(--orange-deep)}
+.tag.pr{background:var(--indigo-soft);color:var(--indigo-deep)}
+
+.opt{border:2px solid var(--line);border-radius:18px;padding:15px;margin-top:11px;background:var(--surface);display:block;width:100%;text-align:left}
+.opt[aria-pressed="true"]{border-color:var(--indigo);background:var(--indigo-soft)}
+.badge{font-size:10px;text-transform:uppercase;letter-spacing:.09em;font-weight:800;font-family:var(--display);padding:4px 9px;border-radius:999px;display:inline-block;margin-bottom:8px}
+.badge.all{background:var(--emerald);color:#fff}
+.badge.prem{background:var(--orange);color:#fff}
+.badge.part{background:var(--line-soft);color:var(--slate)}
+.oh{display:flex;align-items:baseline;gap:9px}
+.ovn{font-family:var(--display);font-weight:700;font-size:16px;margin-right:auto;line-height:1.2}
+.ocost{font-family:var(--display);font-weight:800;font-size:17px;letter-spacing:-.02em;white-space:nowrap}
+.odet{font-size:12.5px;color:var(--slate);margin-top:3px}
+.meter{display:flex;gap:3px;margin-top:11px}
+.meter span{height:8px;flex:1;border-radius:3px;background:var(--line)}
+.meter span.c{background:var(--emerald)}
+.meter span.o{background:var(--line);opacity:.8}
+.why{margin-top:9px;font-size:13px;color:var(--ink)}
+.why .q{color:var(--slate)}
+
+.locked{background:var(--orange-soft);border-radius:16px;padding:14px;margin-top:12px}
+.locked .lt{font-family:var(--display);font-weight:700;font-size:14.5px;color:var(--orange-deep)}
+.locked .ld{font-size:12.5px;color:var(--orange-deep);margin-top:4px;opacity:.9}
+
+.bq{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--orange);font-family:var(--display)}
+.choice{width:100%;text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:16px;padding:14px;margin-top:10px;min-height:46px}
+.choice .ct{font-weight:700;font-size:15px;font-family:var(--display)}
+.choice .cc{font-size:13px;color:var(--slate);margin-top:4px}
+.choice.go{border-color:var(--emerald)}
+.choice.go .ct{color:var(--emerald-deep)}
+
+.sum{margin-top:13px;display:flex;flex-direction:column;gap:7px}
+.srow{display:flex;gap:10px;padding:11px 13px;background:var(--canvas);border-radius:13px;font-size:14px}
+.srow .k{color:var(--slate);flex:0 0 100px;font-size:12.5px;font-weight:600}
+.srow .v{font-weight:600;min-width:0}
+.clearbox{margin-top:14px;border:2px solid var(--indigo-soft);border-radius:16px;overflow:hidden}
+.cbh{background:var(--indigo-soft);color:var(--indigo-deep);padding:10px 13px;font-family:var(--display);font-weight:700;font-size:13.5px}
+.cbr{display:flex;gap:10px;padding:11px 13px;border-top:1px solid var(--line-soft);font-size:13.5px;align-items:baseline}
+.cbr .cbk{margin-right:auto}
+.cbr .cbk small{display:block;color:var(--slate);font-size:11.5px;font-weight:500}
+.cbr .cbv{font-family:var(--display);font-weight:700;white-space:nowrap}
+.cbr.tot{background:var(--canvas);font-size:15px}
+.cbr.tot .cbv{font-size:18px;letter-spacing:-.02em}
+
+.req{margin-top:13px;display:flex;flex-direction:column;gap:8px}
+.req div{display:flex;gap:9px;font-size:13.5px;align-items:flex-start}
+.req .bx{flex:0 0 auto;width:19px;height:19px;border-radius:6px;border:2px solid var(--line);margin-top:1px;display:grid;place-items:center;font-size:12px;font-weight:800;color:#fff}
+.req .bx.on{background:var(--emerald);border-color:var(--emerald)}
+.confirm{display:flex;gap:11px;align-items:flex-start;margin-top:17px;font-size:13.5px;background:var(--canvas);border-radius:14px;padding:13px}
+.confirm input{width:23px;height:23px;flex:0 0 auto;margin:0;accent-color:var(--indigo)}
+.note{font-size:12.5px;color:var(--slate);margin-top:12px}
+.simbox{background:var(--orange-soft);color:var(--orange-deep);border-radius:14px;padding:14px;margin-top:15px;font-size:13px;font-weight:500}
+.simbox b{font-family:var(--display);display:block;margin-bottom:4px;font-size:14.5px;font-weight:700}
+.doneb{background:var(--emerald-soft);color:var(--emerald-deep);border-radius:14px;padding:14px;margin-top:13px;font-size:13px;font-weight:500}
+.doneb b{font-weight:700}
+
+.foot{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--surface);border-top:1px solid var(--line);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+.foot-in{max-width:460px;margin:0 auto;display:flex;gap:9px;align-items:center}
+.foot button{min-height:46px;border-radius:13px;border:2px solid var(--line);background:var(--surface);font-size:13.5px;padding:8px 15px;font-weight:700;font-family:var(--display)}
+.foot .sp{margin-right:auto;font-size:11.5px;color:var(--slate);font-weight:600}
+@media (prefers-reduced-motion:no-preference){.card,.opt,.choice,.tile,.chip{transition:border-color .14s,background .14s,transform .08s}}
+</style>
+
+<div class="wrap">
+  <div class="demo">
+    <span aria-hidden="true">▲</span>
+    <span><b>Prototype with sample data.</b> The five friends, venues and prices are invented. Nothing is booked, charged, or sent to anyone.</span>
+  </div>
+
+  <div class="bar">
+    <div class="bar-top">
+      <div class="brand">skwad</div>
+      <div class="ladder" id="ladder" aria-label="Plan status"></div>
+    </div>
+    <div class="deadline" id="deadline" hidden></div>
+    <div class="steps" id="steps" aria-hidden="true"></div>
+  </div>
+
+  <main id="screen"></main>
+</div>
+
+<div class="foot">
+  <div class="foot-in">
+    <span class="sp" id="stepLabel"></span>
+    <button type="button" id="back">Back</button>
+    <button type="button" id="reset">Start over</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ===================== sample data ===================== */
+var BLOCKS = [
+  {id:"morning",   label:"Morning",   hint:"before 1pm"},
+  {id:"afternoon", label:"Afternoon", hint:"1 to 6pm"},
+  {id:"evening",   label:"Evening",   hint:"after 6pm"},
+  {id:"whole",     label:"Whole day", hint:"I'm free all day"}
+];
+
+var CATEGORIES = [
+  {id:"food",   name:"Food & drinks", desc:"brunch, brewery, dinner"},
+  {id:"games",  name:"Games & arcade", desc:"bowling, escape rooms"},
+  {id:"out",    name:"Outdoors",      desc:"cycling, trails, water"},
+  {id:"shows",  name:"Movies & shows", desc:"cinema, theatre, comedy"}
+];
+
+/* prebook: the slot has to be reserved and paid for up front, so skwad can
+   collect the split. Everything else is settled at the counter on the day,
+   and skwad only ever shows an estimate for those. */
+var VENUES = {
+  food: [
+    {name:"Third Wave, Indiranagar", detail:"brunch and filter coffee, 2 hrs", block:"afternoon", vibe:"indoor", allIn:420, prebook:false},
+    {name:"Toit Brewpub",            detail:"shared plates, one round",        block:"evening",   vibe:"indoor", allIn:780, prebook:false},
+    {name:"Hoot Rooftop",            detail:"rooftop dinner, table held",      block:"evening",   vibe:"outdoor", allIn:1150, prebook:false}
+  ],
+  games: [
+    {name:"Smaaash, Koramangala", detail:"two bowling lanes and arcade, 2 hrs", block:"evening",   vibe:"indoor", allIn:580, prebook:true},
+    {name:"Mystery Rooms",        detail:"60-minute escape room, whole group",  block:"afternoon", vibe:"indoor", allIn:850, prebook:true},
+    {name:"The Pool Room",        detail:"lounge table, pay for what you order", block:"evening",  vibe:"indoor", allIn:1150, prebook:false}
+  ],
+  out: [
+    {name:"Cubbon Park cycle loop", detail:"morning ride, rentals on the spot", block:"morning", vibe:"outdoor", allIn:250, prebook:false},
+    {name:"Nandi Hills sunrise",    detail:"early start, cab split six ways",   block:"morning", vibe:"outdoor", allIn:650, prebook:false},
+    {name:"Hesaraghatta kayaking",  detail:"guided session, gear and lunch",    block:"whole",   vibe:"outdoor", allIn:1250, prebook:true}
+  ],
+  shows: [
+    {name:"PVR Forum matinee",   detail:"afternoon show, seats booked", block:"afternoon", vibe:"indoor", allIn:480, prebook:true},
+    {name:"Ranga Shankara play", detail:"evening show, balcony seats",  block:"evening",   vibe:"indoor", allIn:700, prebook:true},
+    {name:"Courtyard comedy",    detail:"premium seats and dinner",     block:"evening",   vibe:"indoor", allIn:1200, prebook:true}
+  ]
+};
+
+/* Each friend's blocks, vibe and ceiling are PRIVATE. The UI never renders
+   another person's ceiling, and never says who was asked to flex. */
+var FRIENDS = [
+  {name:"Aarav",  blocks:["afternoon","evening"],         vibe:"indoor",  ceiling:900,  flexTo:1200},
+  {name:"Ishita", blocks:["evening"],                      vibe:"indoor",  ceiling:1200, flexTo:1200},
+  {name:"Kabir",  blocks:["morning","afternoon"],          vibe:"outdoor", ceiling:600,  flexTo:700},
+  {name:"Nisha",  blocks:["afternoon","evening","whole"],  vibe:"indoor",  ceiling:1500, flexTo:1500},
+  {name:"Veer",   blocks:["evening"],                      vibe:"outdoor", ceiling:1000, flexTo:1300}
+];
+
+var MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+var MON3 = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+var DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+var TODAY = new Date(2026, 9, 24);
+
+function pad2(n){ return (n < 10 ? "0" : "") + n; }
+function iso(y, m, d){ return y + "-" + pad2(m + 1) + "-" + pad2(d); }
+function parseIso(s){
+  var p = s.split("-");
+  return new Date(+p[0], +p[1] - 1, +p[2]);
+}
+function fmtDate(s){
+  var d = parseIso(s);
+  return DOW[d.getDay()] + " " + d.getDate() + " " + MON3[d.getMonth()];
+}
+function sortedDates(){ return S.dates.slice().sort(); }
+
+/* ===================== state ===================== */
+var S, DEADLINE;
+
+function fresh(){
+  return {
+    screen:1, dates:["2026-10-31"], month:{y:2026, m:9}, category:null, shared:false,
+    me:{blocks:{}, vibe:null, ceiling:1000, flexedTo:null},
+    submitted:false,
+    friendFlex:{},
+    chosen:null,
+    flexDone:{},
+    approved:false, othersApproved:false, tick:false, ready:false, paid:false
+  };
+}
+function reset(){ S = fresh(); DEADLINE = Date.now() + (31*3600 + 1200)*1000; render(); }
+
+/* ===================== derivation ===================== */
+function me(){ return {name:"You", you:true, blocks:Object.keys(S.me.blocks), vibe:S.me.vibe, ceiling:S.me.ceiling, flexedTo:S.me.flexedTo}; }
+function people(){ return [me()].concat(FRIENDS); }
+function ceilingOf(p){
+  if(p.you) return S.me.flexedTo || S.me.ceiling;
+  return S.friendFlex[p.name] ? p.flexTo : p.ceiling;
+}
+function venues(){ return S.category ? VENUES[S.category] : []; }
+
+function timeFit(p, v){
+  if(v.block === "whole") return p.blocks.indexOf("whole") >= 0;
+  return p.blocks.indexOf(v.block) >= 0 || p.blocks.indexOf("whole") >= 0;
+}
+function vibeFit(p, v){ return p.vibe === v.vibe; }
+
+/* Budget exclusion is only counted for people who already clear time and vibe,
+   so a date clash is never reported as a money problem. */
+function fit(v){
+  var inList = [], outTime = [], outVibe = [], outBudget = [];
+  people().forEach(function(p){
+    if(!timeFit(p, v)){ outTime.push(p); return; }
+    if(!vibeFit(p, v)){ outVibe.push(p); return; }
+    if(ceilingOf(p) < v.allIn){ outBudget.push(p); return; }
+    inList.push(p);
+  });
+  return {inList:inList, outTime:outTime, outVibe:outVibe, outBudget:outBudget, total:people().length};
+}
+
+/* VISIBILITY RULE: an option is shown to the group only when nobody is excluded
+   on budget. Money exclusions never reach the group; they become private checks. */
+function visible(v){ return fit(v).outBudget.length === 0; }
+
+function ranked(){
+  return venues().slice().filter(visible).sort(function(a, b){
+    var fa = fit(a), fb = fit(b);
+    if(fb.inList.length !== fa.inList.length) return fb.inList.length - fa.inList.length;
+    return a.allIn - b.allIn;
+  });
+}
+function best(){ return ranked()[0] || null; }
+function cheapestVisible(){
+  var r = ranked().slice().sort(function(a,b){ return a.allIn - b.allIn; });
+  return r[0] || null;
+}
+
+/* Private checks, generated from state. One per venue, never more than two. */
+function flexQueue(){
+  var q = [], b = best();
+  venues().forEach(function(v){
+    if(S.flexDone[v.name]) return;
+    var c = fit(v);
+    if(c.outBudget.length && c.outBudget.some(function(p){ return p.you; })){
+      q.push({kind:"budget", v:v, gap:v.allIn - (S.me.flexedTo || S.me.ceiling), others:c.outBudget.length - 1});
+    }
+  });
+  venues().forEach(function(v){
+    if(S.flexDone[v.name]) return;
+    var c = fit(v);
+    if(c.outTime.some(function(p){ return p.you; }) && c.inList.length >= 3){
+      q.push({kind:"time", v:v, others:c.inList.length});
+    }
+  });
+  return q.slice(0, 2);
+}
+
+function rupee(n){ return "₹" + n.toLocaleString("en-IN"); }
+function billOf(allIn){ return Math.round(allIn / 1.1 / 10) * 10; }
+function nameList(list){
+  var n = list.map(function(p){ return p.you ? "you" : p.name; });
+  if(n.length <= 1) return n[0] || "";
+  return n.slice(0, -1).join(", ") + " and " + n[n.length - 1];
+}
+function blockLabel(id){
+  var b = BLOCKS.filter(function(x){ return x.id === id; })[0];
+  return b ? b.label.toLowerCase() : id;
+}
+
+/* ===================== chrome ===================== */
+function renderLadder(){
+  var pre = !S.chosen || S.chosen.prebook;
+  var k = S.ready ? "ready" : (S.chosen && S.screen >= 5) ? "proposed" : (S.submitted ? "proposed" : "draft");
+  var rows = [
+    {t:"Proposed", on:k === "proposed"},
+    {t:pre ? "Ready" : "Locked", ok:k === "ready"}
+  ];
+  if(pre) rows.push({t:"Booked", off:true});
+  document.getElementById("ladder").innerHTML = rows.map(function(r){
+    return '<span class="rung' + (r.ok ? " ok" : r.on ? " on" : "") + (r.off ? " off" : "") + '">' + r.t + "</span>";
+  }).join("");
+}
+
+function renderDeadline(){
+  var el = document.getElementById("deadline");
+  if(!S.submitted || S.screen < 3 || S.ready){ el.hidden = true; return; }
+  var b = best();
+  if(!b){ el.hidden = true; return; }
+  el.hidden = false;
+  var ms = Math.max(0, DEADLINE - Date.now());
+  var h = Math.floor(ms / 3600000), m = Math.floor(ms % 3600000 / 60000), s = Math.floor(ms % 60000 / 1000);
+  var pad = function(n){ return (n < 10 ? "0" : "") + n; };
+  el.innerHTML = '<span class="cd">' + h + "h " + pad(m) + "m " + pad(s) + "s</span>" +
+    "<span>If nobody objects, skwad locks <b>" + b.name + "</b> on its own. Silence moves the plan forward.</span>";
+}
+
+/* ===================== screens ===================== */
+function screen1(){
+  var cat = S.category ? CATEGORIES.filter(function(c){ return c.id === S.category; })[0] : null;
+  return '<div class="card">' +
+    '<div class="eyebrow">Step 1 · The spark</div>' +
+    '<h2 class="t">Start it where the chat already is</h2>' +
+    '<p class="sub">Set the plan up here, drop the link into the group. Nobody else installs anything.</p>' +
+    '<div class="field"><label>Which days are we aiming at?</label>' + calendar() + "</div>" +
+    '<div class="field"><label>What kind of thing?</label>' +
+      '<div class="tiles" role="group" aria-label="Category">' +
+        CATEGORIES.map(function(c){
+          return '<button type="button" class="tile" data-cat="' + c.id + '" aria-pressed="' + (S.category === c.id) + '">' +
+            '<span class="tn">' + c.name + '</span><span class="td">' + c.desc + "</span></button>";
+        }).join("") + "</div></div>" +
+    (S.shared
+      ? '<div class="field"><label>Shared to the group (simulated)</label>' +
+          '<div class="linkcard" style="align-self:stretch;max-width:none;margin-top:9px">' +
+            '<div style="font-family:var(--display);font-weight:700;font-size:14px">' +
+            cat.name + " · " + sortedDates().map(fmtDate).join(" or ") + "</div>" +
+            '<div class="u">skwad.link/usual-suspects</div>' +
+            '<div style="font-size:11.5px;color:var(--slate);margin-top:5px">Three taps · no login · answers stay private</div></div>' +
+          '<p class="note">All five opened it and answered privately.</p></div>' +
+        '<button type="button" class="btn" data-go="2">Now answer it yourself</button>'
+      : '<button type="button" class="btn" data-share="1"' + (S.category && S.dates.length ? "" : " disabled") + ">Create the link</button>" +
+        '<p class="note">Two taps to create. No account, no group setup, no profile for anyone.</p>') +
+  "</div>";
+}
+
+function screen2(){
+  var picked = Object.keys(S.me.blocks).length;
+  var ok = picked > 0 && S.me.vibe;
+  var bill = billOf(S.me.ceiling), extra = S.me.ceiling - bill;
+  return '<div class="card">' +
+    '<div class="eyebrow">Step 2 · Frictionless RSVP</div>' +
+    '<h2 class="t">Three taps and you’re done</h2>' +
+    '<p class="sub">Everyone gets this exact menu. No calendars to sync, no hours to pick, nothing to negotiate.</p>' +
+    '<div class="field"><label>When could you make it?</label>' +
+      '<div class="chips" role="group" aria-label="Time blocks">' +
+        BLOCKS.map(function(b){
+          return '<button type="button" class="chip" data-block="' + b.id + '" aria-pressed="' + (!!S.me.blocks[b.id]) + '">' + b.label + "</button>";
+        }).join("") + "</div>" +
+      '<p class="note" style="margin-top:9px">Pick as many as work. Blocks, not timetables.</p></div>' +
+    '<div class="field"><label>Indoor or outdoor?</label>' +
+      '<div class="chips" role="group" aria-label="Vibe">' +
+        ["indoor","outdoor"].map(function(v){
+          return '<button type="button" class="chip em" data-vibe="' + v + '" aria-pressed="' + (S.me.vibe === v) + '">' +
+            v.charAt(0).toUpperCase() + v.slice(1) + "</button>";
+        }).join("") + "</div></div>" +
+    '<div class="field"><label for="cap">Your all-in ceiling</label>' +
+      '<div class="bigval num">' + rupee(S.me.ceiling) + "</div>" +
+      '<div class="decomp">That is what leaves your wallet: about <b class="num">' + rupee(bill) +
+        '</b> on the bill plus <b class="num">' + rupee(extra) + "</b> for taxes and tip.</div>" +
+      '<input type="range" id="cap" min="200" max="2000" step="50" value="' + S.me.ceiling + '">' +
+      '<p class="note" style="margin-top:2px">skwad never quietly spends above this number. If a plan would, it asks you first.</p></div>' +
+    '<div class="priv">' + lock() +
+      "<span><b>Only you see this.</b> Your ceiling, your days and your vibe are never shown to the group, and not to whoever started the plan either. The group only ever sees what everyone’s answers add up to.</span></div>" +
+    '<button type="button" class="btn" data-go="3"' + (ok ? "" : " disabled") + ">" +
+      (ok ? "Send it and see where we land" : "Pick a time block and a vibe") + "</button>" +
+  "</div>";
+}
+
+function calendar(){
+  var y = S.month.y, m = S.month.m;
+  var lead = new Date(y, m, 1).getDay();
+  var days = new Date(y, m + 1, 0).getDate();
+  var weeks = 6; /* always six rows, so the next month's first days are reachable */
+  var atStart = (y === TODAY.getFullYear() && m === TODAY.getMonth());
+  var cells = [];
+  /* The grid carries the adjacent months' days too, so a weekend that straddles
+     a month boundary can be picked without paging. */
+  for(var i = 0; i < weeks * 7; i++){
+    var dt = new Date(y, m, 1 - lead + i);
+    var key = iso(dt.getFullYear(), dt.getMonth(), dt.getDate());
+    var other = dt.getMonth() !== m;
+    var past = dt < TODAY, we = dt.getDay() === 0 || dt.getDay() === 6;
+    var sel = S.dates.indexOf(key) >= 0;
+    cells.push('<button type="button" class="cd' + (we ? " we" : "") + (sel ? " sel" : "") + (other ? " other" : "") +
+      '" data-day="' + key + '"' + (past ? " disabled" : "") + ' aria-pressed="' + sel + '">' + dt.getDate() + "</button>");
+  }
+  var picked = sortedDates();
+  return '<div class="cal">' +
+    '<div class="calhead">' +
+      '<button type="button" data-mon="-1" aria-label="Previous month"' + (atStart ? " disabled" : "") + ">‹</button>" +
+      '<span class="mo">' + MONTHS[m] + " " + y + "</span>" +
+      '<button type="button" data-mon="1" aria-label="Next month">›</button>' +
+    "</div>" +
+    '<div class="calgrid">' + DOW.map(function(w){ return '<span class="dow">' + w[0] + "</span>"; }).join("") + "</div>" +
+    '<div class="calgrid" style="margin-top:4px">' + cells.join("") + "</div>" +
+    '<div class="calpick">' + (picked.length
+      ? "Aiming at <b>" + picked.map(fmtDate).join("</b>, <b>") + "</b>. Weekends are highlighted."
+      : "Tap one or more days. Weekends are highlighted.") + "</div>" +
+  "</div>";
+}
+
+function lock(){
+  return '<svg width="15" height="15" viewBox="0 0 14 14" fill="none" aria-hidden="true">' +
+    '<rect x="2.5" y="6" width="9" height="6.5" rx="1.8" stroke="currentColor" stroke-width="1.5"/>' +
+    '<path d="M4.75 6V4.25a2.25 2.25 0 0 1 4.5 0V6" stroke="currentColor" stroke-width="1.5"/></svg>';
+}
+
+function roster(){
+  return '<div class="roster">' + people().map(function(p, i){
+    var cls = p.you ? "" : (i % 3 === 1 ? " g" : i % 3 === 2 ? " o" : "");
+    return '<div class="rrow"><div class="av' + cls + '">' + (p.you ? "You"[0] : p.name[0]) + "</div>" +
+      '<div class="rname">' + (p.you ? "You" : p.name) + "</div>" +
+      '<span class="tag ok">Answered</span><span class="tag pr">Private</span></div>';
+  }).join("") + "</div>";
+}
+
+function screen3(){
+  var list = ranked(), q = flexQueue(), b = best();
+  var hidden = venues().filter(function(v){ return !visible(v); }).length;
+
+  var h = '<div class="card">' +
+    '<div class="eyebrow">Step 3 · Social harmony engine</div>' +
+    '<h2 class="t">Options that already work</h2>' +
+    '<p class="sub">No averages. skwad looks for the plan that fits <b>everyone</b> first, then shows what a better one would cost the whole group.</p>' +
+    roster() +
+    '<p class="note">Everyone answered. Nobody’s answers are visible, including to you.</p>';
+
+  if(q.length){
+    h += '<div class="locked"><div class="lt">' + q.length + " option" + (q.length > 1 ? "s are" : " is") + " waiting on a private check</div>" +
+      '<div class="ld">Something here needs one person’s say-so before the group sees it. Nobody has been shown it yet, and nobody will be told who was asked.</div>' +
+      '<button type="button" class="btn orange sm" data-go="4">Resolve it privately</button></div>';
+  }
+
+  if(!list.length){
+    h += '<p class="note" style="margin-top:14px">Nothing fits everyone yet. Resolve the private check above, or widen your own answers.</p>';
+    return h + "</div>";
+  }
+
+  h += list.map(function(v){ return optionCard(v, b && v.name === b.name); }).join("");
+
+  if(hidden && !q.length){
+    h += '<p class="note">' + hidden + " option" + (hidden > 1 ? "s are" : " is") +
+      " not shown, because " + (hidden > 1 ? "they go" : "it goes") +
+      " past somebody’s ceiling and they chose not to stretch it. skwad will not tell the group that, or who.</p>";
+  }
+  h += '<p class="note">Ranked by how many people are in, then by price. A pricier option only appears as an equal top-up for everyone, never as a reason to look at one person.</p>';
+  return h + "</div>";
+}
+
+function optionCard(v, isDefault){
+  var c = fit(v), cheap = cheapestVisible();
+  var cells = [];
+  var i;
+  for(i = 0; i < c.inList.length; i++) cells.push('<span class="c"></span>');
+  for(i = 0; i < c.total - c.inList.length; i++) cells.push('<span class="o"></span>');
+
+  var badge, why;
+  if(c.inList.length === c.total){
+    badge = '<span class="badge all">Everyone’s in</span>';
+  } else {
+    badge = '<span class="badge part">' + c.inList.length + " of " + c.total + "</span>";
+  }
+  if(cheap && v.allIn > cheap.allIn){
+    badge += ' <span class="badge prem">Premium upgrade · +' + rupee(v.allIn - cheap.allIn) + " each</span>";
+  }
+
+  var bits = [];
+  if(c.outTime.length) bits.push(nameList(c.outTime) + " can’t do the " + blockLabel(v.block));
+  if(c.outVibe.length) bits.push(nameList(c.outVibe) + " asked for " + (v.vibe === "indoor" ? "outdoor" : "indoor"));
+  why = bits.length
+    ? '<span class="q">Out:</span> ' + bits.join("; ") + "."
+    : "Fits every single person’s time, vibe and ceiling.";
+
+  return '<button type="button" class="opt" data-opt="' + v.name + '" aria-pressed="' + (S.chosen && S.chosen.name === v.name) + '">' +
+    badge +
+    '<div class="oh"><span class="ovn">' + v.name + '</span><span class="ocost num">' + rupee(v.allIn) + "</span></div>" +
+    '<div class="odet">' + v.detail + " · " + blockLabel(v.block) + " · " +
+      (v.prebook ? "book ahead" : "pay at the venue") + "</div>" +
+    '<div class="meter">' + cells.join("") + "</div>" +
+    '<div class="why">' + why + "</div>" +
+    (isDefault ? '<div class="note" style="margin-top:8px;color:var(--indigo);font-weight:600">✓ This is what locks if nobody objects</div>' : "") +
+  "</button>";
+}
+
+function screen4(){
+  var q = flexQueue();
+  if(!q.length){
+    return '<div class="card"><div class="eyebrow">Step 4 · Micro-flex</div>' +
+      '<h2 class="t">Nothing left to ask</h2>' +
+      '<p class="sub">Every private check is answered. Back to the options, which now include anything that got unlocked.</p>' +
+      '<button type="button" class="btn" data-go="3">See the options</button></div>';
+  }
+  var f = q[0], v = f.v, c = fit(v);
+  var head, body, choices;
+
+  if(f.kind === "budget"){
+    head = "Stretch by " + rupee(f.gap) + " to unlock " + v.name + "?";
+    body = v.name + " comes to " + rupee(v.allIn) + " all-in, which is " + rupee(f.gap) +
+      " over your ceiling. Nobody in the group has been shown this option, and saying no costs you nothing — they will never know it was asked.";
+    choices = [
+      {k:"yes", go:true, t:"Yes, I can do " + rupee(v.allIn),
+       c:"Raises only your own ceiling for this plan. The option becomes visible if everyone else under it also says yes."},
+      {k:"no", t:"No, keep me at " + rupee(S.me.flexedTo || S.me.ceiling),
+       c:"The option stays hidden from the group. The plan carries on with what already fits everyone."}
+    ];
+  } else {
+    head = "Could you make the " + blockLabel(v.block) + "?";
+    body = c.inList.length + " of " + c.total + " can do " + v.name + " in the " + blockLabel(v.block) +
+      ", and you are the one who can’t. Adding that block only changes what you are offered.";
+    choices = [
+      {k:"yes", go:true, t:"Add " + blockLabel(v.block) + " to my answer",
+       c:"You get counted for " + v.name + " and anything else in that block."},
+      {k:"no", t:"Leave my times as they are",
+       c:"The group keeps the options that already suit you. Nothing is reported."}
+    ];
+  }
+
+  return '<div class="card">' +
+    '<div class="bq">Private · only you see this</div>' +
+    '<h2 class="t" style="margin-top:7px">' + head + "</h2>" +
+    '<p class="sub">' + body + "</p>" +
+    choices.map(function(ch){
+      return '<button type="button" class="choice' + (ch.go ? " go" : "") + '" data-flex="' + f.kind + "|" + ch.k + "|" + v.name + '">' +
+        '<div class="ct">' + ch.t + "</div><div class=\"cc\">" + ch.c + "</div></button>";
+    }).join("") +
+    '<div class="priv">' + lock() +
+      "<span>One question, to one person, answered alone. skwad asks before it ever shows the group a plan that leaves somebody out on money.</span></div>" +
+  "</div>";
+}
+
+function screen5(){
+  var v = S.chosen, c = fit(v);
+  var going = c.inList, bill = billOf(v.allIn), tax = v.allIn - bill;
+  var total = going.length * v.allIn;
+  var day = fmtDate(sortedDates()[0]);
+  var effCap = (S.me.flexedTo && v.allIn > S.me.ceiling) ? S.me.flexedTo : S.me.ceiling;
+  var pre = v.prebook;
+
+  var reqs = [
+    {ok:true, t:"Time and place locked — " + day + ", " + blockLabel(v.block)},
+    {ok:true, t:going.length + " of " + c.total + " committed"},
+  ];
+  if(pre){
+    reqs.push({ok:S.approved, t:"Your share approved"});
+    reqs.push({ok:S.othersApproved, t:"Everyone else’s share approved"});
+  } else {
+    reqs.push({ok:true, t:"Nothing to pay up front — settled at the venue"});
+  }
+  if(S.me.flexedTo && v.allIn > S.me.ceiling){
+    reqs.push({ok:true, t:"You stretched your ceiling to " + rupee(v.allIn) + " to unlock this one"});
+  }
+
+  var h = '<div class="card">' +
+    '<div class="eyebrow">Step 5 · Clear-box confirmation</div>' +
+    '<h2 class="t">' + (S.ready ? (pre ? "Ready to book" : "Locked in") : "Proposed plan") + "</h2>" +
+    '<p class="sub">' + (S.ready
+      ? (pre ? "Every share is approved. In the real product the group rate would be held with the venue at this point."
+             : "Time and place are settled. Money happens at the venue.")
+      : (pre ? "This is a proposal, not a booking. The slot has to be paid for up front to be held, so here is exactly where each rupee would go."
+             : "This is a proposal. Nothing is paid through skwad — you pay at the venue, so the figures below are an estimate.")) + "</p>" +
+    '<div class="sum">' +
+      srow("When", day + " · " + blockLabel(v.block)) +
+      srow("Where", v.name) +
+      srow("What", v.detail) +
+      srow("Going", going.map(function(p){ return p.you ? "You" : p.name; }).join(", ")) +
+      (c.total - going.length ? srow("Not joining", nameList(c.outTime.concat(c.outVibe)) + " — times and vibe, not money") : "") +
+    "</div>" +
+    (pre
+      ? '<div class="clearbox"><div class="cbh">Your ' + rupee(v.allIn) + ", itemised</div>" +
+        cbrow(v.name, "the slot itself — paid to the venue", rupee(bill)) +
+        cbrow("GST and service", "collected by the venue, not by skwad", rupee(tax)) +
+        cbrow("skwad", "nothing from you — the venue pays us 10% of the booking", rupee(0)) +
+        '<div class="cbr tot"><span class="cbk">Your total</span><span class="cbv num">' + rupee(v.allIn) + "</span></div></div>"
+      : '<div class="clearbox"><div class="cbh">Rough split · estimate only</div>' +
+        cbrow(v.name, "what people usually spend per head", "~" + rupee(bill)) +
+        cbrow("Taxes and tip", "moves with the actual bill", "~" + rupee(tax)) +
+        cbrow("skwad", "earns nothing on a pay-at-the-venue plan", rupee(0)) +
+        '<div class="cbr tot"><span class="cbk">Approx per head</span><span class="cbv num">~' + rupee(v.allIn) + "</span></div></div>") +
+    (pre
+      ? '<p class="note">Your ceiling was ' + rupee(effCap) + " and your share is " + rupee(v.allIn) +
+        ". skwad will not take a rupee past the number you set.</p>"
+      : '<p class="note">Your ceiling was ' + rupee(effCap) + " and the estimate is about " + rupee(v.allIn) +
+        ". skwad will not put a place above your number in front of the group, but the bill on the day is between you and the venue.</p>") +
+    '<div class="req">' + reqs.map(function(r){
+      return '<div><span class="bx' + (r.ok ? " on" : "") + '" aria-hidden="true">' + (r.ok ? "✓" : "") + "</span><span>" + r.t + "</span></div>";
+    }).join("") + "</div>" +
+    (pre
+      ? '<div class="clearbox" style="border-color:var(--line)"><div class="cbh" style="background:var(--canvas);color:var(--slate)">Split · everyone pays their own share</div>' +
+        going.map(function(p){
+          var st, cls;
+          if(p.you){ st = S.approved ? "Approved" : "Not yet"; cls = S.approved ? "ok" : ""; }
+          else { st = S.othersApproved ? "Approved" : "Waiting"; cls = S.othersApproved ? "ok" : "wait"; }
+          return '<div class="cbr"><span class="cbk">' + (p.you ? "You" : p.name) + '</span><span class="cbv num">' + rupee(v.allIn) +
+            '</span><span class="tag ' + cls + '">' + st + "</span></div>";
+        }).join("") +
+        '<div class="cbr tot"><span class="cbk">Collected from ' + going.length + '</span><span class="cbv num">' + rupee(total) + "</span></div></div>" +
+        '<p class="note">The slot only holds once it is paid for, so each person approves their own share here. Nobody fronts the lot.</p>'
+      : '<div class="clearbox" style="border-color:var(--line)"><div class="cbh" style="background:var(--canvas);color:var(--slate)">Approximate split · ' + going.length + " people</div>" +
+        going.map(function(p){
+          return '<div class="cbr"><span class="cbk">' + (p.you ? "You" : p.name) + '</span><span class="cbv num">~' + rupee(v.allIn) + "</span></div>";
+        }).join("") +
+        '<div class="cbr tot"><span class="cbk">Approx total</span><span class="cbv num">~' + rupee(total) + "</span></div></div>" +
+        '<div class="simbox"><b>skwad does not collect this one</b>Whoever is at the counter puts it on their card, and the group squares up afterwards on Splitwise, UPI, or however you already do it. The real bill will not match this estimate, and entering the actual charges is deliberately out of scope for this version.</div>');
+
+  if(pre && !S.approved) h += '<button type="button" class="btn" data-approve="1">Approve my share · ' + rupee(v.allIn) + "</button>";
+  if(pre && S.approved && !S.othersApproved) h += '<button type="button" class="btn quiet sm" data-others="1">Simulate: the others approve</button>';
+
+  var canLock = pre ? (S.tick && S.approved && S.othersApproved) : S.tick;
+  if(!S.ready){
+    h += '<label class="confirm"><input type="checkbox" id="tick"' + (S.tick ? " checked" : "") + ">" +
+      "<span>I confirm this time and place for the group. " +
+      (pre ? "This moves the plan to <b>Ready to book</b>. It does not book or charge anything."
+           : "This <b>locks</b> the plan. There is nothing to book and nothing to pay through skwad.") +
+      "</span></label>" +
+      '<button type="button" class="btn em" data-ready="1"' + (canLock ? "" : " disabled") + ">" +
+      (pre ? "Mark it ready to book" : "Lock the plan") + "</button>";
+    if(!canLock) h += '<p class="note">' + (pre ? "Needs every share approved and your confirmation." : "Needs your confirmation.") + "</p>";
+  } else if(pre){
+    h += '<div class="simbox"><b>Checkout preview</b>This is where the split payment and the group rate would be taken. Nothing below is real.</div>' +
+      '<button type="button" class="btn orange" data-pay="1">Pay ' + rupee(v.allIn) + " · simulated</button>";
+    if(S.paid){
+      h += '<div class="doneb"><b>Nothing was charged and nothing is booked.</b> This prototype has no payment or venue integration. The plan stays at <b>Ready to book</b> — the third status, <b>Booked</b>, is deliberately out of reach here.</div>';
+    }
+  } else {
+    h += '<div class="doneb"><b>Locked. Nothing was booked and nothing was charged.</b> There is nothing to book here — turn up, and settle the bill between yourselves afterwards. skwad earns nothing on a plan like this, which is the honest version of the attach-rate problem.</div>';
+  }
+  return h + "</div>";
+}
+
+function srow(k, v){ return v ? '<div class="srow"><span class="k">' + k + '</span><span class="v">' + v + "</span></div>" : ""; }
+function cbrow(k, sub, val){
+  return '<div class="cbr"><span class="cbk">' + k + "<small>" + sub + '</small></span><span class="cbv num">' + val + "</span></div>";
+}
+
+/* ===================== render ===================== */
+function render(){
+  if(S.screen === 5 && !S.chosen) S.screen = 3;
+  document.getElementById("screen").innerHTML = [screen1, screen2, screen3, screen4, screen5][S.screen - 1]();
+  document.getElementById("steps").innerHTML = [1,2,3,4,5].map(function(i){
+    return '<i class="' + (i <= S.screen ? "done" : "") + '"></i>';
+  }).join("");
+  document.getElementById("stepLabel").textContent = "Step " + S.screen + " of 5";
+  document.getElementById("back").disabled = S.screen === 1;
+  renderLadder();
+  renderDeadline();
+  window.scrollTo(0, 0);
+}
+
+/* ===================== events ===================== */
+document.addEventListener("click", function(e){
+  var t = e.target.closest("button");
+  if(!t) return;
+  var d = t.dataset || {};
+
+  if(t.id === "back"){ if(S.screen > 1) S.screen--; return render(); }
+  if(t.id === "reset") return reset();
+
+  if(d.day){
+    var i = S.dates.indexOf(d.day);
+    if(i >= 0) S.dates.splice(i, 1); else S.dates.push(d.day);
+    S.shared = false;
+    return render();
+  }
+  if(d.mon){
+    var nm = S.month.m + (+d.mon);
+    S.month = {y:S.month.y + Math.floor(nm / 12), m:((nm % 12) + 12) % 12};
+    return render();
+  }
+  if(d.cat){ S.category = d.cat; S.shared = false; S.chosen = null; return render(); }
+  if(d.share){ S.shared = true; return render(); }
+  if(d.go){
+    S.screen = +d.go;
+    if(S.screen >= 3) S.submitted = true;
+    return render();
+  }
+  if(d.block){
+    if(S.me.blocks[d.block]) delete S.me.blocks[d.block]; else S.me.blocks[d.block] = true;
+    return render();
+  }
+  if(d.vibe){ S.me.vibe = d.vibe; return render(); }
+  if(d.opt){
+    S.chosen = venues().filter(function(v){ return v.name === d.opt; })[0];
+    S.screen = 5;
+    return render();
+  }
+  if(d.flex){
+    var parts = d.flex.split("|"), kind = parts[0], ans = parts[1], vname = parts[2];
+    var v = venues().filter(function(x){ return x.name === vname; })[0];
+    S.flexDone[vname] = true;
+    if(ans === "yes" && kind === "budget"){
+      S.me.flexedTo = v.allIn;
+      /* Everyone else below the line is asked privately too. Their answers are
+         simulated here; the UI never says who was asked or what they said. */
+      FRIENDS.forEach(function(p){ if(p.ceiling < v.allIn && p.flexTo >= v.allIn) S.friendFlex[p.name] = true; });
+    }
+    if(ans === "yes" && kind === "time"){ S.me.blocks[v.block] = true; }
+    if(!flexQueue().length) S.screen = 3;
+    return render();
+  }
+  if(d.approve){ S.approved = true; return render(); }
+  if(d.others){ S.othersApproved = true; return render(); }
+  if(d.ready){ S.ready = true; return render(); }
+  if(d.pay){ S.paid = true; return render(); }
+});
+
+document.addEventListener("input", function(e){
+  if(e.target.id === "cap"){
+    S.me.ceiling = +e.target.value;
+    S.me.flexedTo = null;
+    var f = e.target.closest(".field");
+    if(f){
+      f.querySelector(".bigval").textContent = rupee(S.me.ceiling);
+      var bill = billOf(S.me.ceiling);
+      f.querySelector(".decomp").innerHTML = "That is what leaves your wallet: about <b class=\"num\">" + rupee(bill) +
+        "</b> on the bill plus <b class=\"num\">" + rupee(S.me.ceiling - bill) + "</b> for taxes and tip.";
+    }
+  }
+});
+document.addEventListener("change", function(e){
+  if(e.target.id === "cap") render();
+  if(e.target.id === "tick"){ S.tick = e.target.checked; render(); }
+});
+
+setInterval(renderDeadline, 1000);
+reset();
+</script>
+
+</body></html>
